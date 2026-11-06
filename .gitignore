@@ -1,0 +1,6 @@
+node_modules/
+.netlify/
+.env
+*.log
+# The generated list of secret links — never commit it
+restaurant-links.txt

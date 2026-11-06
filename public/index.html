@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#1f1a17">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="志和勢 発注">
+  <title>志和勢 発注</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icon-180.png">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">志和勢 発注</div>
+    <div class="shop" id="shopName"></div>
+  </header>
+
+  <nav class="tabs" id="tabs" hidden>
+    <button class="tab active" data-tab="order">注文する</button>
+    <button class="tab" data-tab="history">注文履歴</button>
+  </nav>
+
+  <main id="main">
+    <p class="loading" id="loading">読み込み中…</p>
+    <section id="error" class="panel error" hidden></section>
+
+    <section id="orderView" hidden>
+      <div class="card">
+        <h2>納品日</h2>
+        <p class="hint" id="cutoffHint"></p>
+        <div class="dates" id="dates" role="radiogroup" aria-label="納品日"></div>
+      </div>
+
+      <div class="toolbar">
+        <button class="ghost" id="repeatLast" hidden>前回と同じ数量を入れる</button>
+        <button class="ghost" id="clearAll">数量をクリア</button>
+      </div>
+
+      <div id="sections"></div>
+
+      <div class="card">
+        <h2>その他（自由記入）</h2>
+        <p class="hint">リストにない商品はここに書いてください。</p>
+        <div id="extras"></div>
+        <button class="ghost" id="addExtra">＋ 行を追加</button>
+      </div>
+
+      <div class="card">
+        <label class="field">
+          <span>発注者名</span>
+          <input id="orderedBy" maxlength="30" autocomplete="name" placeholder="例：山田">
+        </label>
+        <label class="field">
+          <span>備考</span>
+          <textarea id="note" maxlength="500" rows="3" placeholder="カットの指定、時間の希望など"></textarea>
+        </label>
+      </div>
+      <div class="spacer"></div>
+    </section>
+
+    <section id="historyView" hidden>
+      <div id="historyList"></div>
+    </section>
+  </main>
+
+  <footer class="bar" id="bar" hidden>
+    <div class="summary" id="summary">0品目</div>
+    <button class="primary" id="toConfirm" disabled>確認へ</button>
+  </footer>
+
+  <dialog id="confirm">
+    <form method="dialog" class="sheet">
+      <h2>この内容で注文しますか？</h2>
+      <div id="confirmBody"></div>
+      <div class="actions">
+        <button value="cancel" class="ghost">戻る</button>
+        <button value="ok" class="primary" id="sendBtn">注文を送信</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="done">
+    <div class="sheet">
+      <h2>注文を受け付けました</h2>
+      <p class="big" id="doneId"></p>
+      <p id="doneText"></p>
+      <div class="actions">
+        <button class="primary" id="doneOk">閉じる</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

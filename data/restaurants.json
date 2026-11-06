@@ -1,0 +1,146 @@
+{
+  "_note": "Each restaurant's order list, copied from its current 発注書. 'par' = 適正在庫 (shown as a hint only). 'unit' is what they count in. Items with unit '' still need the unit confirmed. Edit this file to add/remove items, then commit + push.",
+  "restaurants": [
+    {
+      "id": "kitasuzu",
+      "name": "北鈴蘭台",
+      "email": "",
+      "extraLeadDays": 0,
+      "sections": [
+        {
+          "title": "肉",
+          "items": [
+            { "id": "karubi", "name": "カルビ", "unit": "", "par": 4 },
+            { "id": "nakaochi-karubi", "name": "中落ちカルビ", "unit": "", "par": 2 },
+            { "id": "jo-karubi", "name": "上カルビ", "unit": "", "par": 4 },
+            { "id": "brisket", "name": "ブリスケ", "unit": "", "par": 2 },
+            { "id": "assari-rosu", "name": "あっさりロース", "unit": "", "par": 4 },
+            { "id": "shunsatsu-rosu", "name": "瞬殺ロース", "unit": "", "par": 2 },
+            { "id": "yukke", "name": "ユッケ用", "unit": "", "par": 3 },
+            { "id": "jo-rosu", "name": "上ロース", "unit": "", "par": 2 },
+            { "id": "us-tan-case", "name": "USタンケース", "unit": "ケース" },
+            { "id": "grass-tan-case", "name": "グラスタンケース", "unit": "ケース" },
+            { "id": "tsurami", "name": "ツラミ", "unit": "" },
+            { "id": "misuji", "name": "ミスジ", "unit": "" },
+            { "id": "engawa", "name": "エンガワ", "unit": "", "par": 4 },
+            { "id": "komekami", "name": "コメカミ", "unit": "", "par": 4 },
+            { "id": "torimomo", "name": "トリモモ", "unit": "", "par": 4 },
+            { "id": "wiener", "name": "ウインナー", "unit": "", "par": 4 },
+            { "id": "soboro-minchi", "name": "そぼろ用ミンチ", "unit": "", "par": 1 },
+            { "id": "nikogori", "name": "煮凝り用", "spec": "250g", "unit": "", "par": 4 },
+            { "id": "gyusuji", "name": "牛すじ", "unit": "", "par": 4 }
+          ]
+        },
+        {
+          "title": "ホルモン・その他の肉",
+          "items": [
+            { "id": "kappa", "name": "カッパ", "unit": "", "par": 4 },
+            { "id": "horumon", "name": "ホルモン", "unit": "", "par": 2 },
+            { "id": "tecchan", "name": "てっちゃん", "unit": "", "par": 4 },
+            { "id": "senmai", "name": "センマイ", "unit": "", "par": 4 },
+            { "id": "jo-mino", "name": "上ミノ", "unit": "", "par": 4 },
+            { "id": "heart", "name": "ハート", "unit": "", "par": 4 },
+            { "id": "liver", "name": "レバー", "unit": "", "par": 4 },
+            { "id": "harami", "name": "ハラミ", "unit": "", "par": 4 },
+            { "id": "butatoro", "name": "豚トロ", "unit": "" },
+            { "id": "ichibo", "name": "イチボ", "unit": "" },
+            { "id": "toro-sashi", "name": "トロ刺し", "unit": "", "par": 2 },
+            { "id": "toro-sushi", "name": "トロ寿司", "unit": "", "par": 2 },
+            { "id": "kainomi", "name": "カイノミ", "unit": "", "par": 2 },
+            { "id": "today-steak", "name": "本日のステーキ", "unit": "" },
+            { "id": "akami-sushi", "name": "赤身寿司", "unit": "" },
+            { "id": "hakusai-kimchi", "name": "はくさいキムチ", "unit": "" },
+            { "id": "gyushi", "name": "牛脂", "unit": "" },
+            { "id": "akasen", "name": "あかせん", "unit": "" },
+            { "id": "nz-intercostal", "name": "NZインターコスタル", "unit": "" }
+          ]
+        },
+        {
+          "title": "その他",
+          "items": [
+            { "id": "meat-paper", "name": "ミートペーパー", "unit": "" },
+            { "id": "bento-box", "name": "弁当箱", "unit": "" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hokusai-shinsaibashi",
+      "name": "肉重北斎（心斎橋）",
+      "email": "",
+      "extraLeadDays": 0,
+      "sections": [
+        {
+          "title": "神戸牛",
+          "items": [
+            { "id": "kobe-set", "name": "神戸牛セット（特上・焼肉）", "spec": "半頭分", "unit": "箱" }
+          ]
+        },
+        {
+          "title": "和牛",
+          "items": [
+            { "id": "wagyu-yaki-suki-block", "name": "焼き肉・すき焼きブロック", "spec": "約15kg", "unit": "箱" },
+            { "id": "wagyu-rare-steak", "name": "和牛レアステーキ", "spec": "約10kg", "unit": "箱" },
+            { "id": "sushi", "name": "寿司", "spec": "約200g", "unit": "ケ" }
+          ]
+        },
+        {
+          "title": "豪州産・カナダ豚",
+          "items": [
+            { "id": "au-rare-steak", "name": "豪州産 レアステーキ", "spec": "約10kg", "unit": "箱" },
+            { "id": "ca-pork-katarosu", "name": "カナダ豚 肩ロースブロック", "spec": "約10kg", "unit": "箱" }
+          ]
+        },
+        {
+          "title": "ミンチ材",
+          "items": [
+            { "id": "hamburg-minchi", "name": "ハンバーグ用 ミンチ", "spec": "2.25kg×3", "unit": "箱" },
+            { "id": "hamburg-gyu", "name": "ハンバーグ用 牛", "spec": "10kg", "unit": "ケ" },
+            { "id": "hamburg-buta", "name": "ハンバーグ用 豚", "spec": "1.4kg", "unit": "ケ" },
+            { "id": "gyushi", "name": "牛脂", "spec": "1kg", "unit": "ケ" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hokusai-kawaramachi",
+      "name": "肉重北斎（河原町）",
+      "email": "",
+      "extraLeadDays": 0,
+      "sections": [
+        {
+          "title": "神戸牛",
+          "items": [
+            { "id": "kobe-set", "name": "神戸牛セット（特上・焼肉）", "spec": "半頭分", "unit": "箱" }
+          ]
+        },
+        {
+          "title": "和牛",
+          "items": [
+            { "id": "wagyu-yaki-suki-block", "name": "焼き肉・すき焼きブロック", "spec": "約15kg", "unit": "箱" },
+            { "id": "wagyu-rare-steak", "name": "和牛レアステーキ", "spec": "約10kg", "unit": "箱" },
+            { "id": "sushi", "name": "寿司", "spec": "約200g", "unit": "ケ" }
+          ]
+        },
+        {
+          "title": "交雑牛・豪州産・カナダ豚",
+          "items": [
+            { "id": "kozatsu-yaki-suki-block", "name": "交雑牛 焼肉・すき焼きブロック", "spec": "約10kg", "unit": "箱" },
+            { "id": "au-rare-steak", "name": "豪州産 レアステーキ", "spec": "約10kg", "unit": "箱" },
+            { "id": "ca-pork-katarosu", "name": "カナダ豚 肩ロースブロック", "spec": "約10kg", "unit": "箱" }
+          ]
+        },
+        {
+          "title": "ミンチ材・その他",
+          "items": [
+            { "id": "hamburg-minchi", "name": "ハンバーグ用 ミンチ", "spec": "2.25kg×3", "unit": "箱" },
+            { "id": "hamburg-gyu", "name": "ハンバーグ用 牛", "spec": "10kg", "unit": "ケ" },
+            { "id": "hamburg-buta", "name": "ハンバーグ用 豚", "spec": "1.4kg", "unit": "ケ" },
+            { "id": "gyushi", "name": "牛脂", "spec": "1kg", "unit": "ケ" },
+            { "id": "gyu-aburi", "name": "牛炙り", "unit": "ケ" }
+          ]
+        }
+      ]
+    }
+  ]
+}
