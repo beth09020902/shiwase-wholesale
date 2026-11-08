@@ -1,10 +1,10 @@
-import { json, authRestaurant } from "../../lib/http.mjs";
+import { json, authRestaurant, NOT_LOGGED_IN } from "../../lib/http.mjs";
 import { ordersStore } from "../../lib/store.mjs";
 
 // GET /api/history — this restaurant's latest orders (newest first) with their status.
 export async function handle(req, store, limit = 20) {
   const restaurant = authRestaurant(req);
-  if (!restaurant) return json({ error: "このリンクは無効です。志和勢にお問い合わせください。" }, 401);
+  if (!restaurant) return json({ error: NOT_LOGGED_IN }, 401);
 
   const { blobs } = await store.list({ prefix: `${restaurant.id}/` });
   // Keys are "<restaurantId>/WSyymmdd-XXXX", so sorting keys sorts by order date.

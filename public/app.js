@@ -8,13 +8,11 @@ const store = {
   del(k) { try { localStorage.removeItem(k); } catch {} },
 };
 
-// The secret key arrives as #k=... in the link; remember it for the home-screen icon.
-function readKey() {
-  const m = location.hash.match(/k=([A-Za-z0-9_-]+)/);
-  if (m) { store.set("ws-key", m[1]); return m[1]; }
-  return store.get("ws-key");
-}
-const KEY = readKey();
+// Login: the restaurant's password is exchanged for a 30-day token, kept in this browser.
+// Old private links (#k=...) no longer work — clear them so they don't linger.
+try { store.del("ws-key"); } catch {}
+if (/k=/.test(location.hash)) history.replaceState(null, "", location.pathname);
+let TOKEN = store.get("ws-token");
 
 const state = {
   restaurant: null,
@@ -28,9 +26,13 @@ const state = {
 async function api(path, opts = {}) {
   const res = await fetch(path, {
     ...opts,
-    headers: { "x-restaurant-key": KEY || "", "content-type": "application/json", ...(opts.headers || {}) },
+    headers: { authorization: `Bearer ${TOKEN || ""}`, "content-type": "application/json", ...(opts.headers || {}) },
   });
   const data = await res.json().catch(() => ({}));
+  if (res.status === 401 && path !== "/api/login") {
+    logout("ログインの有効期限が切れました。もう一度ログインしてください。");
+    throw new Error(data.error || "ログインしてください");
+  }
   if (!res.ok) throw new Error(data.error || `エラーが発生しました (${res.status})`);
   return data;
 }
@@ -260,15 +262,54 @@ async function send() {
   }
 }
 
+// ---------- login ----------
+function showLogin(msg) {
+  $("loading").hidden = true;
+  for (const id of ["tabs", "orderView", "historyView", "bar", "logout", "error"]) $(id).hidden = true;
+  $("shopName").textContent = "";
+  document.title = "志和勢 発注";
+  $("loginView").hidden = false;
+  $("loginErr").hidden = !msg;
+  $("loginErr").textContent = msg || "";
+  $("password").value = "";
+  setTimeout(() => $("password").focus(), 0);
+}
+
+function logout(msg) {
+  TOKEN = null;
+  store.del("ws-token");
+  state.restaurant = null; state.qty = {}; state.extras = []; state.history = [];
+  showLogin(msg);
+}
+
+async function doLogin(e) {
+  e.preventDefault();
+  const btn = $("loginBtn");
+  btn.disabled = true; btn.textContent = "確認中…";
+  try {
+    const r = await api("/api/login", { method: "POST", body: JSON.stringify({ password: $("password").value }) });
+    TOKEN = r.token;
+    store.set("ws-token", r.token);
+    $("loginView").hidden = true;
+    await loadApp();
+  } catch (err) {
+    $("loginErr").hidden = false;
+    $("loginErr").textContent = err.message;
+  } finally {
+    btn.disabled = false; btn.textContent = "ログイン";
+  }
+}
+
 // ---------- start ----------
-async function start() {
-  if (!KEY) return showError("このリンクは無効です。志和勢から届いたリンクを開いてください。");
+async function loadApp() {
+  $("loading").hidden = false;
   let data;
-  try { data = await api("/api/catalog"); } catch (e) { return showError(e.message); }
+  try { data = await api("/api/catalog"); } catch (e) { if (TOKEN) showError(e.message); return; }
 
   state.restaurant = data.restaurant;
   state.dates = data.dates;
   state.date = data.dates[0]?.date || null;
+  state.qty = {}; state.extras = []; state.history = [];
   document.title = `志和勢 発注｜${data.restaurant.name}`;
   $("shopName").textContent = data.restaurant.name;
   $("cutoffHint").textContent = `${data.cutoffHour}時までのご注文は翌日納品できます。`;
@@ -278,10 +319,15 @@ async function start() {
   renderDates(); renderItems(); renderExtras(); updateBar();
 
   $("loading").hidden = true;
+  $("error").hidden = true;
+  $("logout").hidden = false;
   $("tabs").hidden = false;
-  $("orderView").hidden = false;
-  $("bar").hidden = false;
+  switchTab("order");
 
+  loadHistory();
+}
+
+function bindOnce() {
   for (const b of document.querySelectorAll(".tab")) b.onclick = () => switchTab(b.dataset.tab);
   $("toConfirm").onclick = openConfirm;
   $("confirm").addEventListener("close", () => { if ($("confirm").returnValue === "ok") send(); });
@@ -292,8 +338,9 @@ async function start() {
     state.qty = {}; state.extras = []; renderItems(); renderExtras(); saveDraft(); updateBar();
   };
   $("repeatLast").onclick = () => state.history[0] && copyOrder(state.history[0]);
-
-  loadHistory();
+  $("loginForm").addEventListener("submit", doLogin);
+  $("logout").onclick = () => { if (confirm("ログアウトしますか？")) logout(); };
 }
 
-start();
+bindOnce();
+if (TOKEN) loadApp(); else showLogin();

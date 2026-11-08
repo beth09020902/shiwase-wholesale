@@ -1,4 +1,4 @@
-import { json, authRestaurant } from "../../lib/http.mjs";
+import { json, authRestaurant, NOT_LOGGED_IN } from "../../lib/http.mjs";
 import { buildOrder, blobKey, orderEmail, OrderError } from "../../lib/orders.mjs";
 import { ordersStore } from "../../lib/store.mjs";
 import { DEFAULT_NOTIFY_TO } from "../../lib/config.mjs";
@@ -30,7 +30,7 @@ async function sendEmail(order, restaurant) {
 export async function handle(req, store, { send = sendEmail, now = new Date() } = {}) {
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
   const restaurant = authRestaurant(req);
-  if (!restaurant) return json({ error: "このリンクは無効です。志和勢にお問い合わせください。" }, 401);
+  if (!restaurant) return json({ error: NOT_LOGGED_IN }, 401);
 
   let body;
   try { body = await req.json(); } catch { return json({ error: "内容が読み取れません" }, 400); }

@@ -123,3 +123,12 @@ dialog::backdrop { background: rgb(0 0 0 / .45); }
 .badge.cancelled { color: var(--muted); text-decoration: line-through; }
 .order-card ul { margin: 8px 0; padding-left: 1.2em; font-size: 15px; }
 .empty { color: var(--muted); text-align: center; padding: 40px 0; }
+.shop { display: flex; align-items: center; gap: 10px; }
+.logout {
+  border: 1px solid rgb(255 255 255 / .35); background: none; color: inherit;
+  border-radius: 8px; padding: 4px 10px; font-size: 13px;
+}
+.login { max-width: 420px; margin: 32px auto; }
+.login input { font-size: 18px; }
+.login-err { color: var(--accent); font-weight: 600; margin: 0 0 10px; }
+.wide { width: 100%; }

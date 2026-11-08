@@ -2,13 +2,14 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { earliestDate, deliveryOptions, isAllowedDate } from "../lib/calendar.mjs";
 import { buildOrder, blobKey, OrderError, orderEmail } from "../lib/orders.mjs";
-import { restaurants, restaurantForKey, publicView } from "../lib/restaurants.mjs";
+import { restaurants, publicView, login, restaurantForToken, parsePasswords } from "../lib/restaurants.mjs";
 import { handle as orderHandle } from "../netlify/functions/order.mjs";
 import { handle as historyHandle } from "../netlify/functions/history.mjs";
+import { handle as loginHandle } from "../netlify/functions/login.mjs";
 
 const jst = (s) => new Date(s + "+09:00");
-const TOKENS = "kitasuzu:aaaaaaaaaaaaaaaaaaaa;hokusai-shinsaibashi:bbbbbbbbbbbbbbbbbbbb";
-process.env.RESTAURANT_TOKENS = TOKENS;
+process.env.RESTAURANT_PASSWORDS = "kitasuzu:kitapass123;hokusai-shinsaibashi:shinpass456";
+const tok = (pw) => login(pw).token;
 
 function memStore() {
   const m = new Map();
@@ -19,9 +20,9 @@ function memStore() {
     async list({ prefix = "" } = {}) { return { blobs: [...m.keys()].filter((k) => k.startsWith(prefix)).map((key) => ({ key })) }; },
   };
 }
-const req = (path, key, body) => new Request("https://x" + path, {
+const req = (path, token, body) => new Request("https://x" + path, {
   method: body ? "POST" : "GET",
-  headers: { "x-restaurant-key": key, "content-type": "application/json" },
+  headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
   body: body ? JSON.stringify(body) : undefined,
 });
 
@@ -41,11 +42,39 @@ test("year-end dates are skipped", () => {
   assert.match(deliveryOptions(jst("2026-11-06T09:00:00"))[0].label, /^11\/7（土）$/);
 });
 
-test("tokens map to restaurants; short/unknown tokens rejected", () => {
-  assert.equal(restaurantForKey("aaaaaaaaaaaaaaaaaaaa").id, "kitasuzu");
-  assert.equal(restaurantForKey("nope"), null);
-  assert.equal(restaurantForKey("short", "kitasuzu:short"), null);
-  assert.equal(restaurantForKey(""), null);
+test("password login: right restaurant, wrong/short/shared passwords refused", () => {
+  assert.equal(login("kitapass123").restaurant.id, "kitasuzu");
+  assert.equal(login("  shinpass456 ").restaurant.id, "hokusai-shinsaibashi");
+  assert.equal(login("nope"), null);
+  assert.equal(login(""), null);
+  assert.equal(login("short", { raw: "kitasuzu:short" }), null);
+  // the same password on two restaurants: only the first counts
+  assert.equal(parsePasswords("kitasuzu:samepass99;hokusai-shinsaibashi:samepass99").size, 1);
+  assert.equal(parsePasswords("unknown-shop:whatever123").size, 0);
+});
+
+test("login token: valid 30 days, tamper-proof, dies when the password changes", () => {
+  const now = Date.now();
+  const r = login("kitapass123", { now });
+  assert.equal(restaurantForToken(r.token, { now }).id, "kitasuzu");
+  assert.equal(restaurantForToken(r.token, { now: now + 29 * 86400000 }).id, "kitasuzu");
+  assert.equal(restaurantForToken(r.token, { now: now + 31 * 86400000 }), null);
+  const forged = r.token.replace("kitasuzu.", "hokusai-shinsaibashi.");
+  assert.equal(restaurantForToken(forged, { now }), null);
+  assert.equal(restaurantForToken(r.token, { now, raw: "kitasuzu:newpassword1" }), null);
+  assert.equal(restaurantForToken("", { now }), null);
+  assert.equal(restaurantForToken("WVBqFZx_sBZtSC-riOO72SqE", { now }), null); // old link keys don't work
+});
+
+test("login endpoint", async () => {
+  const ok = await loginHandle(new Request("https://x/api/login", { method: "POST", body: JSON.stringify({ password: "shinpass456" }) }), { delay: 0 });
+  assert.equal(ok.status, 200);
+  const d = await ok.json();
+  assert.equal(d.name, "肉重北斎（心斎橋）");
+  assert.equal(restaurantForToken(d.token).id, "hokusai-shinsaibashi");
+  const bad = await loginHandle(new Request("https://x/api/login", { method: "POST", body: JSON.stringify({ password: "wrong" }) }), { delay: 0 });
+  assert.equal(bad.status, 401);
+  assert.equal(JSON.stringify(await bad.json()).includes("token"), false);
 });
 
 test("public view hides email", () => {
@@ -84,10 +113,10 @@ test("order + history endpoints, restaurants can't see each other's orders", asy
   let sent = 0;
   const send = async () => { sent++; return true; };
 
-  const bad = await orderHandle(req("/api/order", "wrongwrongwrongwrong", { deliveryDate: "2026-11-07" }), store, { send, now });
+  const bad = await orderHandle(req("/api/order", "kitasuzu.9999999999999.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", { deliveryDate: "2026-11-07" }), store, { send, now });
   assert.equal(bad.status, 401);
 
-  const res = await orderHandle(req("/api/order", "aaaaaaaaaaaaaaaaaaaa",
+  const res = await orderHandle(req("/api/order", tok("kitapass123"),
     { deliveryDate: "2026-11-07", items: [{ id: "karubi", qty: 3 }] }), store, { send, now });
   assert.equal(res.status, 200);
   const { order } = await res.json();
@@ -95,14 +124,14 @@ test("order + history endpoints, restaurants can't see each other's orders", asy
   assert.equal(sent, 1);
   assert.ok(store.m.has(`kitasuzu/${order.id}`));
 
-  const res2 = await orderHandle(req("/api/order", "bbbbbbbbbbbbbbbbbbbb",
+  const res2 = await orderHandle(req("/api/order", tok("shinpass456"),
     { deliveryDate: "2026-11-07", items: [{ id: "sushi", qty: 1 }] }), store, { send, now });
   assert.equal(res2.status, 200);
 
-  const h1 = await (await historyHandle(req("/api/history", "aaaaaaaaaaaaaaaaaaaa"), store)).json();
+  const h1 = await (await historyHandle(req("/api/history", tok("kitapass123")), store)).json();
   assert.equal(h1.orders.length, 1);
   assert.equal(h1.orders[0].id, order.id);
-  const h2 = await (await historyHandle(req("/api/history", "bbbbbbbbbbbbbbbbbbbb"), store)).json();
+  const h2 = await (await historyHandle(req("/api/history", tok("shinpass456")), store)).json();
   assert.equal(h2.orders.length, 1);
   assert.equal(h2.orders[0].restaurantId, "hokusai-shinsaibashi");
 });

@@ -2,5 +2,6 @@ node_modules/
 .netlify/
 .env
 *.log
-# The generated list of secret links — never commit it
+# Generated passwords / old links — never commit them
+restaurant-passwords.txt
 restaurant-links.txt

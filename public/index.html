@@ -16,7 +16,7 @@
 <body>
   <header class="top">
     <div class="brand">志和勢 発注</div>
-    <div class="shop" id="shopName"></div>
+    <div class="shop"><span id="shopName"></span><button class="logout" id="logout" hidden>ログアウト</button></div>
   </header>
 
   <nav class="tabs" id="tabs" hidden>
@@ -27,6 +27,19 @@
   <main id="main">
     <p class="loading" id="loading">読み込み中…</p>
     <section id="error" class="panel error" hidden></section>
+
+    <section id="loginView" class="card login" hidden>
+      <h2>ログイン</h2>
+      <p class="hint">お店のパスワードを入力してください。この端末では30日間ログインしたままになります。</p>
+      <form id="loginForm">
+        <label class="field">
+          <span>パスワード</span>
+          <input id="password" type="password" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" required>
+        </label>
+        <p class="login-err" id="loginErr" hidden></p>
+        <button class="primary wide" id="loginBtn" type="submit">ログイン</button>
+      </form>
+    </section>
 
     <section id="orderView" hidden>
       <div class="card">

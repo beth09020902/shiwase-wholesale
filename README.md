@@ -1,6 +1,6 @@
 # 志和勢 卸注文アプリ (Wholesale Order App)
 
-Restaurants (北鈴蘭台, 肉重北斎 心斎橋, 肉重北斎 河原町 …) order from their phone or tablet using their own private link. Each order is:
+Restaurants (北鈴蘭台, 肉重北斎 心斎橋, 肉重北斎 河原町 …) order from their phone or tablet at wholesale.shiwase.co.jp, logging in with their restaurant's own password (remembered on that device for 30 days). Each order is:
 
 1. saved into the **shop site's** Netlify Blobs (store `wholesale-orders`) so it shows up in 注文管理 at admin.shiwase.co.jp, and
 2. emailed to order@shiwase.co.jp.
@@ -10,10 +10,10 @@ Restaurants see their own item list (copied from their paper/Sheets 発注書), 
 ```
 Wholesale Order App/
 ├─ public/              the screen restaurants use (index.html, app.js, style.css, icons)
-├─ netlify/functions/   catalog.mjs (item list + dates), order.mjs (place order), history.mjs
+├─ netlify/functions/   login.mjs (password → 30-day login), catalog.mjs (item list + dates), order.mjs (place order), history.mjs
 ├─ lib/                 config.mjs (cutoff, closed days) and shared logic
 ├─ data/restaurants.json   ← each restaurant's item list — edit this to change what they can order
-├─ scripts/make-links.mjs  makes each restaurant's secret link
+├─ scripts/make-passwords.mjs  makes each restaurant's password
 ├─ tests/               npm test
 └─ docs/                data contract, the Claude Code prompt for the admin merge, reference files
 ```
@@ -74,22 +74,24 @@ git push -u origin main
 gh repo create beth09020902/shiwase-wholesale --private --source . --push
 ```
 
-### 5. Make the restaurants' secret links
+### 5. Make the restaurants' passwords
 
 ```powershell
-npm run make-links
+npm run make-passwords
 ```
 
-This prints (and saves to `restaurant-links.txt`, which is **not** pushed to GitHub):
+This prints (and saves to `restaurant-passwords.txt`, which is **not** pushed to GitHub):
 
-- one long line starting `kitasuzu:…;hokusai-shinsaibashi:…` — this is the value for `RESTAURANT_TOKENS` in the next step
-- each restaurant's link, e.g. `https://wholesale.shiwase.co.jp/#k=…`
+- one long line starting `kitasuzu:…;hokusai-shinsaibashi:…` — the value for `RESTAURANT_PASSWORDS` in the next step
+- each restaurant's password, to give to that restaurant
 
-Running it again makes **new** links for every restaurant (the old ones stop working once you update Netlify). To replace just one restaurant's link, make a new key and edit only that part of `RESTAURANT_TOKENS` in Netlify:
+Running it with no names makes **new** passwords for every restaurant. To replace just one restaurant's password (staff left, password shared too widely):
 
 ```powershell
-node -e "console.log(require('crypto').randomBytes(18).toString('base64url'))"
+npm run make-passwords -- kitasuzu
 ```
+
+then edit only that part of `RESTAURANT_PASSWORDS` in Netlify and **Trigger deploy**. Every device logged in with that restaurant's old password is logged out at once; the other restaurants aren't affected.
 
 ### 6. Create the Netlify site
 
@@ -104,7 +106,7 @@ Before the first deploy, or straight after it, go to **Project configuration →
 | `NETLIFY_AUTH_TOKEN` | same personal access token the admin site uses | **yes** |
 | `RESEND_API_KEY` | same as the shop site | **yes** |
 | `MAIL_FROM` | the same "from" address the shop's emails use, e.g. `志和勢 <order@shiwase.co.jp>` | no |
-| `RESTAURANT_TOKENS` | the long line from step 5 | **yes** |
+| `RESTAURANT_PASSWORDS` | the long line from step 5 | **yes** |
 | `ORDER_NOTIFY_TO` | optional — defaults to `order@shiwase.co.jp` | no |
 
 Same convention as the other three sites: ticked "secret" → Production value only, scoped to Functions.
@@ -118,18 +120,16 @@ After adding or changing variables: **Deploys → Trigger deploy → Deploy proj
 
 ### 8. Test it yourself
 
-1. Open one restaurant's link from `restaurant-links.txt`.
+1. Open wholesale.shiwase.co.jp and log in with one restaurant's password from `restaurant-passwords.txt`.
 2. Place a small test order (write テスト in 備考).
 3. Check: the email arrives at order@shiwase.co.jp, and the order shows in that restaurant's 注文履歴 tab.
 4. Once the admin merge (step 10) is done, mark the test order 取消 in 注文管理.
 
 If the email doesn't arrive but the order is in 注文履歴, the order is safe — check `RESEND_API_KEY` / `MAIL_FROM`, and the function log under Netlify → **Logs → Functions → order**.
 
-### 9. Send each restaurant its link
+### 9. Give each restaurant its password
 
-Send it by LINE or email. On the restaurant's iPad/iPhone: open the link in **Safari → 共有 → ホーム画面に追加**. On Android: Chrome → ⋮ → **ホーム画面に追加**. After that they just tap the 志 icon.
-
-Anyone with a link can order as that restaurant, so if a link leaks, replace it (step 5) and redeploy.
+Send the address (wholesale.shiwase.co.jp) by LINE or email, and the password separately (in person, or a separate message). On the restaurant's iPad/iPhone: open the address in **Safari → 共有 → ホーム画面に追加**; Android: Chrome → ⋮ → **ホーム画面に追加**. They log in once and stay logged in on that device for 30 days. The **ログアウト** button (top right) is for shared devices.
 
 ### 10. Combine the two admin apps
 
@@ -167,7 +167,7 @@ git commit -m "Update 北鈴蘭台 items"
 git push
 ```
 
-Netlify publishes it in about a minute. Keep each item's `id` the same once it's been ordered (history and 再注文 use it). A new restaurant also needs a link: add `newid:KEY` to `RESTAURANT_TOKENS` in Netlify and redeploy.
+Netlify publishes it in about a minute. Keep each item's `id` the same once it's been ordered (history and 再注文 use it). A new restaurant also needs a password: `npm run make-passwords -- newid`, add `newid:PASSWORD` to `RESTAURANT_PASSWORDS` in Netlify, and Trigger deploy.
 
 **Cutoff time, no-delivery weekdays, holidays** — `lib\config.mjs`, same commit/push.
 
